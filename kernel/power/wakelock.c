@@ -142,8 +142,8 @@ static void wakelocks_gc(void)
 
 	put_cpu();
 
-	if (expedite)
-		goto do_gc;
+	// if (expedite)
+	// 	goto do_gc;
 
 	/*
 	 * If our CPU is busy, allow wakelocks to
@@ -152,11 +152,10 @@ static void wakelocks_gc(void)
 	 * wakelocks and the current CPU is still busy,
 	 * run the garbage collecton anyway.
 	 */
-	if (++wakelocks_gc_count <= WL_GC_COUNT_MAX)
-		return;
-
-	schedule_work(&wakelock_work);
-do_gc:
+	if (expedite || ++wakelocks_gc_count > WL_GC_COUNT_MAX) {
+			schedule_work(&wakelock_work);
+			wakelocks_gc_count = 0;
+		}
 }
 #else /* !CONFIG_PM_WAKELOCKS_GC */
 static inline void wakelocks_lru_add(struct wakelock *wl) {}
